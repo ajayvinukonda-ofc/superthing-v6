@@ -1,22 +1,23 @@
 {
   "short_name": "SuperthingV6",
-  "name": "Superthing V6 Daily Journal",
+  "name": "Superthing Journal V6",
   "icons": [
     {
-      "src": "icon192.png",
+      "src": "logo192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon512.png",
+      "src": "logo512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#000000"
+  "background_color": "#000000",
+  "theme_color": "#000000"
 }
+
 
 
