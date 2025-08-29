@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/superthing-v6/static/css/main.70916549.css",
+    "main.js": "/superthing-v6/static/js/main.83ef1305.js",
+    "index.html": "/superthing-v6/index.html",
+    "main.70916549.css.map": "/superthing-v6/static/css/main.70916549.css.map",
+    "main.83ef1305.js.map": "/superthing-v6/static/js/main.83ef1305.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.70916549.css",
+    "static/js/main.83ef1305.js"
+  ]
+}
