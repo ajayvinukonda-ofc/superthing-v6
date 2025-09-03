@@ -1,27 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-type Task = {
-  time: string;
-  task: string;
-};
+// ------------------ Types ------------------
+type Task = { time: string; task: string };
+type Section = { id: string; title: string; tasks: Task[] };
+type DayState = { sections: { [key: string]: boolean[] }; completed: boolean };
+type DaysState = { [dayId: number]: DayState };
 
-type Section = {
-  id: string;
-  title: string;
-  tasks: Task[];
-};
-
-type DayState = {
-  sections: {
-    [key: string]: boolean[];
-  };
-  completed: boolean;
-};
-
-type DaysState = {
-  [dayId: number]: DayState;
-};
-
+// ------------------ Mission Blueprint ------------------
 const MISSION_BLUEPRINT: Section[] = [
   {
     id: "morning_workout",
@@ -83,6 +68,7 @@ const MISSION_BLUEPRINT: Section[] = [
   },
 ];
 
+// ------------------ Helpers ------------------
 function generateDays(numDays = 180) {
   const arr = [];
   const today = new Date();
@@ -95,14 +81,18 @@ function generateDays(numDays = 180) {
 }
 
 const LS_KEY = "superthing_v6_timetable_v3";
+const XP_KEY = "superthing_xp";
 
+// ------------------ Main App ------------------
 export default function App() {
   const days = useMemo(() => generateDays(180), []);
+
+  // Timetable State
   const [daysState, setDaysState] = useState<DaysState>(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) return JSON.parse(raw).daysState;
-    } catch (e) {}
+    } catch {}
     const init: DaysState = {};
     days.forEach((d) => {
       const sections: { [key: string]: boolean[] } = {};
@@ -118,7 +108,7 @@ export default function App() {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) return JSON.parse(raw).currentDayId;
-    } catch (e) {}
+    } catch {}
     return 1;
   });
 
@@ -126,17 +116,64 @@ export default function App() {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) return JSON.parse(raw).streak || 0;
-    } catch (e) {}
+    } catch {}
     return 0;
   });
 
-  useEffect(() => {
-    const payload = { daysState, currentDayId, streak };
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(payload));
-    } catch (e) {}
-  }, [daysState, currentDayId, streak]);
+  // XP + Level State
+  const [xp, setXp] = useState(() => {
+    const savedXp = localStorage.getItem(`${XP_KEY}_xp`);
+    return savedXp ? parseInt(savedXp, 10) : 0;
+  });
 
+  const [level, setLevel] = useState(() => {
+    const savedLevel = localStorage.getItem(`${XP_KEY}_level`);
+    return savedLevel ? parseInt(savedLevel, 10) : 1;
+  });
+
+  // Save Timetable + XP
+  useEffect(() => {
+    try {
+      const payload = { daysState, currentDayId, streak };
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+      localStorage.setItem(`${XP_KEY}_xp`, xp.toString());
+      localStorage.setItem(`${XP_KEY}_level`, level.toString());
+    } catch {}
+  }, [daysState, currentDayId, streak, xp, level]);
+
+  // XP / Level system
+  useEffect(() => {
+    if (xp >= 100) {
+      setLevel((prev) => prev + 1);
+      setXp(0);
+    }
+  }, [xp]);
+
+  const getTitle = (level: number): string => {
+    if (level < 5) return "Novice Warrior ⚔️";
+    if (level < 10) return "Knight 🛡️";
+    if (level < 20) return "Lord 👑";
+    if (level < 50) return "Legend 🔥";
+    return "Immortal King 💀👑";
+  };
+
+  // Notifications
+  useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+    const checkNotifications = setInterval(() => {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      if (h === 6 && m === 0) new Notification("🔥 Time for Morning Workout!");
+      if (h === 17 && m === 0) new Notification("⚔️ Evening Training Begins!");
+      if (h === 22 && m === 30) new Notification("💤 Sleep Time — Recharge for tomorrow!");
+    }, 60000);
+    return () => clearInterval(checkNotifications);
+  }, []);
+
+  // Toggle Task
   const toggleTask = (dayId: number, sectionId: string, taskIndex: number) => {
     setDaysState((prev) => {
       const copy = { ...prev };
@@ -157,11 +194,8 @@ export default function App() {
       if (!wasCompleted && allDone && dayId === currentDayId) {
         setStreak((s) => s + 1);
         setCurrentDayId((cid) => Math.min(cid + 1, days.length));
+        setXp((prev) => prev + 50); // bonus XP for completing a day
       }
-      if (wasCompleted && !allDone) {
-        setStreak((s) => Math.max(0, s - 1));
-      }
-
       return copy;
     });
   };
@@ -178,33 +212,57 @@ export default function App() {
   const todayEntry = days.find((d) => d.id === currentDayId) || days[0];
   const todayState = daysState[currentDayId];
 
+  // ------------------ UI ------------------
   return (
     <div style={{ background: "#000", color: "#fff", minHeight: "100vh", padding: 20 }}>
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 12,
-          }}
-        >
+        {/* Header */}
+        <header style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
           <div>
-            <h1 style={{ margin: 0 }}>⚔️ Superthing Journal — V6</h1>
+            <h1 style={{ margin: 0 }}>⚔️ Superhuman Journal — V6</h1>
             <div style={{ color: "#ddd", marginTop: 6 }}>
-              <strong>Day {currentDayId}</strong> &nbsp;|&nbsp; Streak: <strong>{streak}</strong> &nbsp;|&nbsp; {todayEntry.date}
+              <strong>Day {currentDayId}</strong> | Streak: <strong>{streak}</strong> | {todayEntry.date}
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <h2>
+                Level {level} — {getTitle(level)}
+              </h2>
+              <progress value={xp} max={100}></progress>
+              <p>{xp}/100 XP</p>
             </div>
           </div>
-          <div>
-            <button
-              onClick={markMissedAndAdvance}
-              style={{ padding: "8px 12px", borderRadius: 8, background: "#222", color: "#fff", border: "1px solid #444" }}
-            >
-              Skip / Mark missed & advance
-            </button>
-          </div>
+          <button
+            onClick={markMissedAndAdvance}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: "#222",
+              color: "#fff",
+              border: "1px solid #444",
+            }}
+          >
+            Skip / Mark missed & advance
+          </button>
         </header>
 
+        {/* XP Button */}
+        <div style={{ marginBottom: 20 }}>
+          <button
+            onClick={() => setXp((prev) => prev + 20)}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "black",
+              color: "white",
+              border: "1px solid #444",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            ✅ Complete Extra Task (+20 XP)
+          </button>
+        </div>
+
+        {/* Daily Sections */}
         {MISSION_BLUEPRINT.map((sec) => (
           <div key={sec.id} style={{ marginBottom: 16, padding: 12, borderRadius: 10, background: "#111" }}>
             <strong style={{ color: "#f6c948", fontSize: 18 }}>{sec.title}</strong>
@@ -215,7 +273,11 @@ export default function App() {
                   <li key={idx} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                     <span style={{ width: 80, color: "#aaa" }}>{item.time}</span>
                     <span style={{ width: 20 }}>{done ? "✅" : "❌"}</span>
-                    <input type="checkbox" checked={done} onChange={() => toggleTask(currentDayId, sec.id, idx)} />
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={() => toggleTask(currentDayId, sec.id, idx)}
+                    />
                     <span>{item.task}</span>
                   </li>
                 );
@@ -224,39 +286,19 @@ export default function App() {
           </div>
         ))}
 
+        {/* Past Days Log */}
         <details style={{ background: "#0b0b0b", padding: 12, borderRadius: 10 }}>
-          <summary style={{ cursor: "pointer", fontWeight: "600", padding: "6px 0" }}>📜 Past Days Log</summary>
+          <summary style={{ cursor: "pointer", fontWeight: "600" }}>📜 Past Days Log</summary>
           <div style={{ marginTop: 10 }}>
             {days.slice(0, currentDayId).map((d) => {
               const state = daysState[d.id];
-              const status = state?.completed ? "✅ Completed" : "❌ Incomplete/Missed";
+              const status = state?.completed ? "✅ Completed" : "❌ Missed";
               return (
                 <div key={d.id} style={{ padding: 10, borderBottom: "1px solid #222" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <div>{d.date}</div>
                     <div style={{ color: state?.completed ? "#6EE7B7" : "#F87171" }}>{status}</div>
                   </div>
-                  <details style={{ marginTop: 8 }}>
-                    <summary style={{ cursor: "pointer" }}>View tasks</summary>
-                    <div style={{ marginTop: 8 }}>
-                      {MISSION_BLUEPRINT.map((sec) => (
-                        <div key={sec.id} style={{ marginBottom: 8 }}>
-                          <strong style={{ color: "#f6c948" }}>{sec.title}</strong>
-                          <ul style={{ marginTop: 6 }}>
-                            {sec.tasks.map((item, idx) => (
-                              <li style={{ display: "flex", gap: 8, alignItems: "center" }} key={idx}>
-                                <span style={{ width: 80, color: daysState[d.id]?.sections?.[sec.id]?.[idx] ? "#6EE7B7" : "#F87171" }}>
-                                  {item.time}
-                                </span>
-                                <span style={{ width: 20 }}>{daysState[d.id]?.sections?.[sec.id]?.[idx] ? "✅" : "❌"}</span>
-                                <span>{item.task}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
                 </div>
               );
             })}
@@ -266,7 +308,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
