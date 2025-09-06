@@ -4,14 +4,19 @@
   "private": true,
   "homepage": "https://ajayvinukonda-ofc.github.io/superthing-v6",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "@tsparticles/engine": "^3.9.1",
+    "@tsparticles/react": "^3.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "tsparticles": "^3.9.1",
+    "tsparticles-engine": "^2.12.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.7",
-    "@types/react-dom": "^18.2.4",
-    "gh-pages": "^5.0.0"
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "gh-pages": "^5.0.0",
+    "typescript": "^5.9.2"
   },
   "scripts": {
     "start": "react-scripts start",
