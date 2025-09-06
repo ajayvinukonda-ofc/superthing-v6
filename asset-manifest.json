@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/superthing-v6/static/css/main.70916549.css",
-    "main.js": "/superthing-v6/static/js/main.747c814f.js",
+    "main.js": "/superthing-v6/static/js/main.4ab2ff13.js",
     "index.html": "/superthing-v6/index.html",
     "main.70916549.css.map": "/superthing-v6/static/css/main.70916549.css.map",
-    "main.747c814f.js.map": "/superthing-v6/static/js/main.747c814f.js.map"
+    "main.4ab2ff13.js.map": "/superthing-v6/static/js/main.4ab2ff13.js.map"
   },
   "entrypoints": [
     "static/css/main.70916549.css",
-    "static/js/main.747c814f.js"
+    "static/js/main.4ab2ff13.js"
   ]
 }
